@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="attachment-processingFlow" doc:id="2c3dfad6-0581-4c00-9796-750a3570b511" >
+		<logger level="INFO" doc:name="Logger" doc:id="b593eb4b-1a75-44b0-b3a6-2960e620611a" message="------------------------New email found - Start processing attachment------------------------attachment-processingFlow------------------------"/>
+		<ee:transform doc:name="Read attachment" doc:id="32e9041f-85f6-4c07-b2fc-08d3dee6403d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"Attachment": payload.attachments
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="xlsx to json" doc:id="1f15463e-865a-4b15-8f2b-1110d10792af" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.Attachment]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Message mapping" doc:id="42b24bd4-a6fc-4a0c-8d3e-ccdd60d329a0" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+var payloadx = (payload 
+mapObject ((value, key, index) -> value))."Cargos a Comercio" 
+filter ((item, index) -> item.B != "") 
+map ((item, index) -> item 
+mapObject ((value, key, index) -> ((key): value) if(value != "") ))
+
+---
+
+(payloadx -payloadx[1]) filter ((item, index) -> sizeOf(item) == 13 ) map ((item, index) -> {
+    "Expediente": item.B,
+    "Comercio": item.C,
+    "Nombre Comercio": item.D,
+    "Tarjeta": item.E,
+    "Importe retroceso": item.F,
+    "Descripción moneda retroceso": item.G,
+    "Fecha operación": item.H,
+    "Ref.Operación (P37)": item.I,
+    "Tipo incidencia": item.J,
+    "Número autorización": item.K,
+    "Importe operación": item.L,
+    "Descripción moneda Operación": item.M,
+    "Idioma requerido para la presentación de alegaciones del comercio": item.N
+})
+//++
+//[{
+//    "total": payloadx[-2].B,
+//    "soma": payloadx[-2].F
+//}]
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="21bf1c10-b829-4eaf-809a-f50d51385d4b" message="------------------------Attachment processed------------------------attachment-processingFlow------------------------"/>
+		<file:write doc:name="Write file on local" doc:id="59e52074-03d6-42a8-89ea-5f5fcaf18ed3" path="C:/Users/gabri/Documents/Cursos/MuleSoft/Ex4/Output/newfile.json" config-ref="File_Config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="597bb595-e192-48c3-bdf2-a93996390069" message="------------------------File created------------------------attachment-processingFlow------------------------"/>
+	</flow>
+	<flow name="attatchment-post-processingFlow" doc:id="48c90b75-3a34-494c-af8d-1b589104fe51" >
+		<logger level="INFO" doc:name="Logger" doc:id="b7339c33-a406-43df-a8da-f871071570ac" message="------------------------New file found - started processing------------------------attatchment-post-processingFlow------------------------"/>
+		<ee:transform doc:name="Transform to xlsx" doc:id="49dc5967-a1e6-4a50-80ad-211dca404395" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="attachment" ><![CDATA[%dw 2.0
+output application/xlsx header=true
+---
+{
+    "Cargos a Comercio": payload
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0eb1f76f-3dbe-44ef-856a-452f584197bf" message="------------------------Attachment post-processing finished------------------------attatchment-post-processingFlow------------------------"/>
+		<email:send doc:name="Send email with attachment" doc:id="a0a32c89-2289-41db-a499-295649be67b5" config-ref="Email_SMTP" subject="test response">
+			<email:to-addresses >
+				<email:to-address value="email.test.mulesoft@gmail.com" />
+			</email:to-addresses>
+			<email:body >
+				<email:content ><![CDATA[test message]]></email:content>
+			</email:body>
+			<email:attachments ><![CDATA[#["file1.xlsx": vars.attachment]]]></email:attachments>
+		</email:send>
+		<logger level="INFO" doc:name="Logger" doc:id="fccb76be-2649-4826-8598-613d7acaecd2" message="------------------------Email sent------------------------attatchment-post-processingFlow------------------------"/>
+	</flow>
+</mule>

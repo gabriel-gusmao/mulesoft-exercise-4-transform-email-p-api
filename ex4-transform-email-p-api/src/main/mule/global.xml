@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd 
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<email:imap-config name="Email_IMAP" doc:name="Email IMAP" doc:id="407af0dc-cfcb-4a84-8fe1-ea8f707ec085" >
+		<email:imaps-connection host="${imaps.host}" user="${imaps.user}" password="${imaps.password}" port="${imaps.port}">
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</email:imaps-connection>
+	</email:imap-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="cf0b7989-8469-4771-a81f-7a4fd9362687" file="properties/${env}.yaml" />
+	<global-property doc:name="Global Property" doc:id="0b7956f6-321e-4e01-999b-b8c5b9ef3000" name="env" value="local" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="f5cebbba-d9e8-4f01-a495-2a065ad9a1fc" file="properties/secure.${env}.yaml" key="${key}" />
+	<file:config name="File_Config" doc:name="File Config" doc:id="5be90f51-b48b-424a-8e4a-4e9e9d834d8b" />
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="13e279de-0954-49b7-8833-d8a1975dfd21" >
+		<email:smtp-connection host="${smtp.host}" port="${smtp.port}" user="${smtp.user}" password="${smtp.password}" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.enable" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	
+</mule>

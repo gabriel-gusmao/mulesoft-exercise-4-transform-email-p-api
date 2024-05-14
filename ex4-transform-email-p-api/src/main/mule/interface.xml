@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<flow name="connnect-to-gmail-Flow" doc:id="4ff7cf78-f661-4e40-ae30-20da1e68bb64" >
+		<email:listener-imap doc:name="On New Email - IMAP" doc:id="eb30a361-9460-4d4a-b19d-a0c23eede20a" config-ref="Email_IMAP" folder="[Gmail]/All Mail">
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+			<email:imap-matcher subjectRegex="^test$" />
+		</email:listener-imap>
+		<flow-ref doc:name="attachment-processingFlow" doc:id="26ec1fa6-f594-48c9-b87d-231865b60a9a" name="attachment-processingFlow"/>
+	</flow>
+	<flow name="response-to-email-Flow" doc:id="0b335dda-0616-448f-9b66-56d6f90f2b0d" >
+		<file:listener doc:name="On New or Updated File" doc:id="04ed77f0-2eee-48db-b059-42c9515d9514" config-ref="File_Config" directory="C:/Users/gabri/Documents/Cursos/MuleSoft/Ex4/Output" overwrite="true" moveToDirectory="C:/Users/gabri/Documents/Cursos/MuleSoft/Ex4/Output/Processed" recursive="false">
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+			<file:matcher filenamePattern="newfile.json" />
+		</file:listener>
+		<flow-ref doc:name="attatchment-post-processingFlow" doc:id="1bd86f62-2a89-452b-89dc-7bad46d7f5cc" name="attatchment-post-processingFlow"/>
+	</flow>
+</mule>

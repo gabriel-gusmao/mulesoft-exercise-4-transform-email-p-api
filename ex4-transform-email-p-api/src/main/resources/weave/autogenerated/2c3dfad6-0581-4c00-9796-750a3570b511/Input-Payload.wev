@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_2c3dfad6_0581_4c00_9796_750a3570b511_Input_Payload = {|
+  body: String, 
+  attachments: { _?: Binary }
+|} {"typeId": "org.mule.extension.email.api.StoredEmailContent"}
+
